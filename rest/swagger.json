@@ -1,0 +1,2662 @@
+{
+  "schemes": [],
+  "swagger": "2.0",
+  "info": {
+    "description": "# Purpose\n\nThe purpose of the hierarchy API is to access and modify the Enlight asset hierarchy as well as closely related concepts such as origins, asset components and asset taxonomy.\n\n# Definitions\n\nThe hierarchy is made up of companies, plants, systems, functional locations, assets, measurement points, lubrication points and inspection points. Collectively, these are referred to as *Nodes*. Nodes imported from other systems have an *origin* that acts as a reference to the resourse in the source system. Nodes can also have *components* attached to them. *Components* represent physical parts of a machine, such as bearings or shafts.\n\n# Hierarchy\n\nThis part of the API is used to [create](#/Hierarchy/post_nodes), [update](#/Hierarchy/put_nodes__node_) and [delete](#/Hierarchy/delete_nodes__node_) hierarchy nodes. There are also endpoints for getting the company node under which a given node is located, getting the ancestor nodes of a given node, getting the descendants of a node, duplicating a given node and its descendants as well as deleting the origin of a node.\n\n## Nodes\n\nNodes are expected to contain a different set of properties depending on the type of the node. See the Models section for information about the different node types.\n\n## Origin\n\nAn origin on a node signifies that the node is synchronized from an external system, such as @Observer or @Analyst. Nodes with an origin cannot be modified, since any changes to the node would be overwritten by the sychronization job. To modify an imported node, the synchronization job first needs to be deleted. Deleting the synchronization job also deletes the origin on the nodes under that company.\n\n## Metadata\n\nThe field *metaData* can be used to store user defined keys, with optional values, on a node. Keys need to be strings, while values are strings or *null*. Certain keys may need special privileges to update. For backwards compatibility, the contents of this field is also reflected in the field *tags*. The *togs* field represents the keys and values as a comma-separated list, with keys and values separated by an equality sign.\n\n### Example\nGiven the following *metaData*\n```json\n{\n    \"tag\": null,\n    \"tag2\": \"value\"\n}\n```\nthe *tags* field would contain `\"tag,tag2=value\"`.\n\n### Creating and updating\n\nSince both the *tags* and *metaData* fields are generated from the same data, changes to either field is also reflected on the other. When creating or updating a node, the resulting metadata is the union of the data in *tags* and *metaData*. If a key has been specified in both the *tags* field and in *metaData*, the value in *tags* takes precedence.\n\n### Limitations\n\nTo prevent abuse of the metadata, the following limits are enforced on the data:\n\n| Property       | Limit |\n|----------------|-------|\n| Number of keys | 50    |\n| Key length     | 128   |\n| Value length   | 256   |\n\nKeys are restricted to alphanumeric characters as well as the characters `+-=._:/@`.\n\n# Asset Components\n\n- [Get](#/Asset%20Components/get_assets__node__components) components\n- [Create](#/Asset%20Components/post_assets__node__components) components\n- [Modify](#/Asset%20Components/put_assets__node__components__component_) components\n- [Delete](#/Asset%20Components/delete_assets__node__components__component_) components\n\n# Node Origins\n\n- Get nodes by full or partial origin definition\n- Get origins matching a partial origin definition\n\n# Hierarchy Event Stream\n\n- Get events that modify the hierarchy\n\n# Asset Taxonomy\n\n- Get known asset classes, types and sequences\n\n# Security\n## Access Token\n\nAll operations require an Access Token belonging to the user. For security reasons, the Identity Token is not allowed. The key should be provided in the header *Authorization*.\n",
+    "title": "Hierarchy API",
+    "contact": {},
+    "license": {
+      "name": "Proprietary"
+    },
+    "version": "1.0"
+  },
+  "host": "api.sandbox.hierarchy.enlight.skf.com",
+  "basePath": "/",
+  "paths": {
+    "/assets/{node}/components": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Asset Components"
+        ],
+        "summary": "Get all components belonging to an asset",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Asset ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "default": 25,
+            "description": "Maximum number of returned components",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "minimum": 0,
+            "type": "integer",
+            "description": "Skip the first _offset_ components in the result",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Component type filter",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requested components belonging to the asset",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Components"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "The supplied asset does not exist",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Asset Components"
+        ],
+        "summary": "Create a new component, such as bearings and shafts",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Asset ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Creates a Shaft or Bearing component",
+            "name": "Component",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/webmodels.ComponentInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Component created successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Component"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "The requested asset does not exist",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Supplied component id does already exist",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/assets/{node}/components/{component}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Asset Components"
+        ],
+        "summary": "Get a specific Component belonging to an asset",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Asset ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Component ID",
+            "name": "component",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Requested component",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Component"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "The requested component or asset does not exist",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Asset Components"
+        ],
+        "summary": "Update an existing component",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Asset ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Component ID",
+            "name": "component",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updates a Shaft or Bearing component",
+            "name": "Component",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/webmodels.ComponentInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Component updated successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Component"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "The specified component, asset or attached component does not exist",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Asset Components"
+        ],
+        "summary": "Delete a component and all its attached components",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Asset ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Component ID",
+            "name": "component",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content",
+            "schema": {
+              "type": "string"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets a list of events from the given timestamp. The number of returned events\ncan be limited with the _limit_ query param. Call this repeatedly until no more\nevents are returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Events"
+        ],
+        "summary": "Gets a list of events from a timestamp",
+        "parameters": [
+          {
+            "type": "integer",
+            "default": 0,
+            "description": "events since timestamp in UnixNano",
+            "name": "since",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "default": 100,
+            "description": "limit response, 0 indicates no limit",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Events fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Events"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes": {
+      "post": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Create a new node. Depending on which type of node is to be created, different fields\nare mandatory. At the very least, specify the fields in the Node data type.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Creates a new node",
+        "parameters": [
+          {
+            "description": "Creates a node wth these properties, can't contain mismatch of type specific data (e.g. a inspection point can't popluate the 'volume' field)",
+            "name": "Node",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeInput"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node created successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeID"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "Node with the specified origin already exists",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node found",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Node"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      },
+      "put": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Updates an existing node",
+        "parameters": [
+          {
+            "description": "Updates the nodes fields with these values, can't contain mismatch of type specific data (e.g. a inspection point can't popluate the 'volume' field)",
+            "name": "Node",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeInput"
+            }
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of node to update",
+            "name": "node",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node updated successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Node"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Deletes the node with the given ID. The delete works recursively on the given nodes' children.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Deletes a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of node to remove",
+            "name": "node",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.EmptyResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/ancestors": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the ancestor nodes for the node with the given ID, ordered by ascending distance from the source node.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Get ancestors for given node.",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Maximum number of returned ancestors",
+            "name": "height",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got ancestors",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Nodes"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/company": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the company node for the node with the given ID.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets the company node for any given node in the hierarchy",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company found",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Node"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/duplicate": {
+      "post": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Duplicates a existing node and puts it under same parent node or a new parent if _dstParentNodeId_ is given.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Duplicates a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of new parent to the duplicate",
+            "name": "dstParentNodeId",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node successfully duplicated. _nodeId_ is ID of new node.",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeID"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Source node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/origin": {
+      "delete": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Deletes the origin of the node with the given ID. The delete optionally works recursively on the given nodes' children.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Deletes the origin of a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID to remove origin for",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "default": false,
+            "description": "Delete origins recursively",
+            "name": "recursive",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Origin(s) deleted successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.EmptyResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified origin was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/subtree": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets a sub tree rooted at the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets a subtree",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Maximum depth of returned subtree",
+            "name": "depth",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Maximum number of returned nodes",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Skip the first _offset_ nodes in the result",
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Only return nodes having the given metadata key",
+            "name": "metadata_key",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Only return nodes where the value corresponding to metadata_key matches the given value",
+            "name": "metadata_value",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got subtree",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Nodes"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/subtree/count": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the node count of a sub tree rooted at the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets node count in a subtree",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got subtree count",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeCount"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/origin/{provider}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Tries to fetch an origin based on origin provider.\nIf no origin matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origin"
+        ],
+        "summary": "Fetch an origin based on origin provider",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Origins fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Origins"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/origin/{provider}/nodes": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Tries to fetch node IDs based on origin provider.\nIf no node has an origin that matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origin"
+        ],
+        "summary": "Fetch node IDs based on origin provider",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nodes fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeIDs"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/origin/{provider}/{type}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Tries to fetch an origin based on origin provider and type.\nIf no origin matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origin"
+        ],
+        "summary": "Fetch an origin based on origin provider and type",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin Type",
+            "name": "type",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Origins fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.Origins"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/origin/{provider}/{type}/nodes": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Tries to fetch node IDs based on origin provider and type.\nIf no node has an origin that matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origin"
+        ],
+        "summary": "Fetch node IDs based on origin provider and type",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin Type",
+            "name": "type",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Nodes fetched successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeIDs"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/origin/{provider}/{type}/{id}/nodes": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Fetches a node ID connected to a given origin.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origin"
+        ],
+        "summary": "Fetch a node ID connected to a given origin.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin Provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin Type",
+            "name": "type",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin Id",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node found",
+            "schema": {
+              "$ref": "#/definitions/webmodels.NodeID"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "No node with the given origin found",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/taxonomy/assets": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets known asset classes, asset types within each class, and sequences within each asset type.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Taxonomy"
+        ],
+        "summary": "Gets the asset taxonomy",
+        "responses": {
+          "200": {
+            "description": "Fetched taxonomy successfully",
+            "schema": {
+              "$ref": "#/definitions/webmodels.AssetTaxonomy"
+            }
+          },
+          "401": {
+            "description": "Invalid or no access token provided",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/httpmodel.ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "eventsource.Record": {
+      "type": "object",
+      "properties": {
+        "aggregateId": {
+          "type": "string"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "sequenceId": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        }
+      }
+    },
+    "httpmodel.ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "AssetClass": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "types": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssetType"
+          }
+        }
+      }
+    },
+    "AssetSequence": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "AssetType": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "sequences": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssetSequence"
+          }
+        }
+      }
+    },
+    "Component": {
+      "type": "object",
+      "properties": {
+        "attachedTo": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "designation": {
+          "type": "string"
+        },
+        "fixedSpeed": {
+          "type": "number"
+        },
+        "id": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "position": {
+          "type": "integer"
+        },
+        "positionDescription": {
+          "type": "string"
+        },
+        "rotatingRing": {
+          "type": "string",
+          "enum": [
+            "inner",
+            "outer",
+            "both"
+          ],
+          "example": "inner"
+        },
+        "serialNumber": {
+          "type": "string"
+        },
+        "shaftSide": {
+          "type": "string",
+          "enum": [
+            "de",
+            "nde",
+            "unknown"
+          ],
+          "example": "nde"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "shaft",
+            "bearing"
+          ],
+          "example": "bearing"
+        }
+      }
+    },
+    "Node": {
+      "type": "object",
+      "properties": {
+        "answers": {
+          "description": "Possible answers for single_choice and multi_choice inspections. Only valid for inspection point type nodes",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "first",
+            "second"
+          ]
+        },
+        "assetClass": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "AX"
+        },
+        "assetSequence": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "02"
+        },
+        "assetType": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "CO"
+        },
+        "bearing": {
+          "description": "Bearing number on this asset. Only valid for measurement point type nodes",
+          "type": "integer",
+          "example": 1
+        },
+        "country": {
+          "description": "Which country the node is in. Only valid for site type node",
+          "type": "string",
+          "example": "SWE"
+        },
+        "criticality": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "criticality_a"
+        },
+        "dadType": {
+          "description": "Type of device used to take measurements on this point. Only valid for measurement point type nodes",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the node",
+          "type": "string",
+          "example": "First bearing, driven end"
+        },
+        "fixedSpeedRpm": {
+          "description": "Speed in RPM if this shaft has a fixed speed. Only valid for measurement point type nodes",
+          "type": "number",
+          "example": 150
+        },
+        "id": {
+          "description": "ID of node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "industrySegment": {
+          "description": "Industry segment of this node. Only valid for site type node",
+          "type": "string",
+          "enum": [
+            "agriculture",
+            "construction",
+            "food_and_beverage",
+            "hydrocarbon_processing",
+            "machine_tool",
+            "marine",
+            "metal",
+            "mining",
+            "power_generation",
+            "pulp_and_paper",
+            "renewable",
+            "undefined"
+          ],
+          "example": "metal"
+        },
+        "label": {
+          "description": "Descriptive name of the node",
+          "type": "string",
+          "example": "01AA DE"
+        },
+        "locationId": {
+          "description": "ID of measurement point location. Only valid for measurement point type nodes",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid"
+        },
+        "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
+          "type": "string",
+          "example": "grease"
+        },
+        "lubricantUnit": {
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "gram",
+            "ounce",
+            "cm3",
+            "unknown"
+          ],
+          "example": "cm3"
+        },
+        "lubricantVolume": {
+          "description": "Volume of lubricant, in the given unit. Only valid for lubrication point type nodes",
+          "type": "integer",
+          "example": 10
+        },
+        "lubricateInstructions": {
+          "description": "Instruction for lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string"
+        },
+        "lubricateInterval": {
+          "description": "Interval between lubrication in days. Only valid for lubrication point type nodes",
+          "type": "integer",
+          "example": 5
+        },
+        "lubricationActivityAssetState": {
+          "description": "ActivityAssetState the asset should be in during the lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "must_be_on",
+            "must_be_off"
+          ],
+          "example": "must_be_on"
+        },
+        "manufacturer": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "Atlas Copco"
+        },
+        "measurementType": {
+          "description": "Type of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "displacement",
+            "acceleration",
+            "velocity",
+            "temperature",
+            "dc_gap",
+            "ampl_phase",
+            "box",
+            "speed",
+            "envelope_2",
+            "envelope_3",
+            "unknown"
+          ],
+          "example": "acceleration"
+        },
+        "metaData": {
+          "description": "Metadata with keys and optional values",
+          "$ref": "#/definitions/NodeMetaData"
+        },
+        "model": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "SF"
+        },
+        "nodeSubType": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "ship",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point"
+          ],
+          "example": "asset"
+        },
+        "nodeType": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point",
+            "unknown"
+          ],
+          "example": "asset"
+        },
+        "orientation": {
+          "description": "Orientation of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "axial",
+            "radial",
+            "radial90",
+            "horizontal",
+            "vertical",
+            "unknown"
+          ],
+          "example": "vertical"
+        },
+        "origin": {
+          "description": "Origin of node, if imported from another system",
+          "$ref": "#/definitions/Origin"
+        },
+        "parentId": {
+          "description": "ID of parent node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "8f7551c5-3357-406d-ab82-bcb138d0b13f"
+        },
+        "position": {
+          "description": "Relative position of node in the Enlight Centre UI",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "postalCode": {
+          "description": "Which postal code the site has. Only valid for site type node",
+          "type": "string",
+          "example": "415 05"
+        },
+        "serialNumber": {
+          "description": "Only valid for asset type nodes",
+          "type": "string"
+        },
+        "shaft": {
+          "description": "Identifier of shaft that this measurement point belongs to. Only valid for measurement point type nodes",
+          "type": "string",
+          "example": "C"
+        },
+        "shaftSide": {
+          "description": "Which side of the given shaft this measurement point belongs to. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "de",
+            "nde"
+          ],
+          "example": "nde"
+        },
+        "tags": {
+          "description": "Comma separated list of free form tags on this node",
+          "type": "string",
+          "example": "tag1,tag2=value"
+        },
+        "unit": {
+          "description": "Unit of the value recorded, in case of numeric inspection. Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "bar"
+        },
+        "valueType": {
+          "description": "Type of value to record. Only valid for inspection point type nodes",
+          "type": "string",
+          "enum": [
+            "numeric",
+            "single_choice",
+            "multi_choice",
+            "unknown"
+          ],
+          "example": "numeric"
+        },
+        "visualizationMaxValue": {
+          "description": "Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "13"
+        },
+        "visualizationMinValue": {
+          "description": "Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "3"
+        },
+        "visualizationType": {
+          "description": "Type of visualization in Enlight Centre. Only valid for inspection point type nodes",
+          "type": "string",
+          "enum": [
+            "visualization_none",
+            "visualization_circular_gauge",
+            "visualization_level_gauge"
+          ],
+          "example": "visualization_circular_gauge"
+        }
+      },
+      "x-nullable": false
+    },
+    "NodeMetaData": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "Origin": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Origin identity",
+          "type": "string",
+          "example": "d932a2f2-bd5e-4803-831a-0f32d50c5b8e"
+        },
+        "provider": {
+          "description": "Origin provider",
+          "type": "string",
+          "example": "8dc6763c-4eaf-4330-914d-56486ebfd68e"
+        },
+        "type": {
+          "description": "Origin type",
+          "type": "string",
+          "example": "TREEELEM"
+        }
+      }
+    },
+    "webmodels.AssetClasses": {
+      "type": "object",
+      "properties": {
+        "classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AssetClass"
+          }
+        }
+      }
+    },
+    "webmodels.AssetTaxonomy": {
+      "type": "object",
+      "properties": {
+        "assetTaxonomy": {
+          "$ref": "#/definitions/webmodels.AssetClasses"
+        }
+      }
+    },
+    "webmodels.Component": {
+      "type": "object",
+      "properties": {
+        "component": {
+          "$ref": "#/definitions/Component"
+        }
+      }
+    },
+    "webmodels.ComponentInput": {
+      "type": "object",
+      "properties": {
+        "attachedTo": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "designation": {
+          "type": "string"
+        },
+        "fixedSpeed": {
+          "type": "number"
+        },
+        "id": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "manufacturer": {
+          "type": "string"
+        },
+        "position": {
+          "type": "integer"
+        },
+        "positionDescription": {
+          "type": "string"
+        },
+        "rotatingRing": {
+          "type": "string",
+          "enum": [
+            "inner",
+            "outer",
+            "both"
+          ],
+          "example": "inner"
+        },
+        "serialNumber": {
+          "type": "string"
+        },
+        "shaftSide": {
+          "type": "string",
+          "enum": [
+            "de",
+            "nde",
+            "unknown"
+          ],
+          "example": "nde"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "shaft",
+            "bearing"
+          ],
+          "example": "bearing"
+        }
+      }
+    },
+    "webmodels.Components": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Component"
+          }
+        },
+        "count": {
+          "type": "integer"
+        }
+      }
+    },
+    "webmodels.EmptyResponse": {
+      "type": "object"
+    },
+    "webmodels.Events": {
+      "type": "object",
+      "properties": {
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/eventsource.Record"
+          }
+        }
+      }
+    },
+    "webmodels.Node": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
+    },
+    "webmodels.NodeCount": {
+      "type": "object",
+      "properties": {
+        "nodeCount": {
+          "type": "integer"
+        }
+      }
+    },
+    "webmodels.NodeID": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid"
+        }
+      }
+    },
+    "webmodels.NodeIDs": {
+      "type": "object",
+      "properties": {
+        "nodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "webmodels.NodeInput": {
+      "type": "object",
+      "properties": {
+        "answers": {
+          "description": "Possible answers for single_choice and multi_choice inspections. Only valid for inspection point type nodes",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "first",
+            "second"
+          ]
+        },
+        "assetClass": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "AX"
+        },
+        "assetSequence": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "02"
+        },
+        "assetType": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "CO"
+        },
+        "bearing": {
+          "description": "Bearing number on this asset. Only valid for measurement point type nodes",
+          "type": "integer",
+          "example": 1
+        },
+        "country": {
+          "description": "Which country the node is in. Only valid for site type node",
+          "type": "string",
+          "example": "SWE"
+        },
+        "criticality": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "criticality_a"
+        },
+        "dadType": {
+          "description": "Type of device used to take measurements on this point. Only valid for measurement point type nodes",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the node",
+          "type": "string",
+          "example": "First bearing, driven end"
+        },
+        "fixedSpeedRpm": {
+          "description": "Speed in RPM if this shaft has a fixed speed. Only valid for measurement point type nodes",
+          "type": "number",
+          "example": 150
+        },
+        "id": {
+          "description": "ID of node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "industrySegment": {
+          "description": "Industry segment of this node. Only valid for site type node",
+          "type": "string",
+          "enum": [
+            "agriculture",
+            "construction",
+            "food_and_beverage",
+            "hydrocarbon_processing",
+            "machine_tool",
+            "marine",
+            "metal",
+            "mining",
+            "power_generation",
+            "pulp_and_paper",
+            "renewable",
+            "undefined"
+          ],
+          "example": "metal"
+        },
+        "label": {
+          "description": "Descriptive name of the node",
+          "type": "string",
+          "example": "01AA DE"
+        },
+        "locationId": {
+          "description": "ID of measurement point location. Only valid for measurement point type nodes",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid"
+        },
+        "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
+          "type": "string",
+          "example": "grease"
+        },
+        "lubricantUnit": {
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "gram",
+            "ounce",
+            "cm3",
+            "unknown"
+          ],
+          "example": "cm3"
+        },
+        "lubricantVolume": {
+          "description": "Volume of lubricant, in the given unit. Only valid for lubrication point type nodes",
+          "type": "integer",
+          "example": 10
+        },
+        "lubricateInstructions": {
+          "description": "Instruction for lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string"
+        },
+        "lubricateInterval": {
+          "description": "Interval between lubrication in days. Only valid for lubrication point type nodes",
+          "type": "integer",
+          "example": 5
+        },
+        "lubricationActivityAssetState": {
+          "description": "ActivityAssetState the asset should be in during the lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "must_be_on",
+            "must_be_off"
+          ],
+          "example": "must_be_on"
+        },
+        "manufacturer": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "Atlas Copco"
+        },
+        "measurementType": {
+          "description": "Type of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "displacement",
+            "acceleration",
+            "velocity",
+            "temperature",
+            "dc_gap",
+            "ampl_phase",
+            "box",
+            "speed",
+            "envelope_2",
+            "envelope_3",
+            "unknown"
+          ],
+          "example": "acceleration"
+        },
+        "metaData": {
+          "description": "Metadata with keys and optional values",
+          "$ref": "#/definitions/NodeMetaData"
+        },
+        "model": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "SF"
+        },
+        "nodeSubType": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "ship",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point"
+          ],
+          "example": "asset"
+        },
+        "nodeType": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point",
+            "unknown"
+          ],
+          "example": "asset"
+        },
+        "orientation": {
+          "description": "Orientation of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "axial",
+            "radial",
+            "radial90",
+            "horizontal",
+            "vertical",
+            "unknown"
+          ],
+          "example": "vertical"
+        },
+        "origin": {
+          "description": "Origin of node, if imported from another system",
+          "$ref": "#/definitions/Origin"
+        },
+        "parentId": {
+          "description": "ID of parent node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "8f7551c5-3357-406d-ab82-bcb138d0b13f"
+        },
+        "position": {
+          "description": "Relative position of node in the Enlight Centre UI",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "postalCode": {
+          "description": "Which postal code the site has. Only valid for site type node",
+          "type": "string",
+          "example": "415 05"
+        },
+        "serialNumber": {
+          "description": "Only valid for asset type nodes",
+          "type": "string"
+        },
+        "shaft": {
+          "description": "Identifier of shaft that this measurement point belongs to. Only valid for measurement point type nodes",
+          "type": "string",
+          "example": "C"
+        },
+        "shaftSide": {
+          "description": "Which side of the given shaft this measurement point belongs to. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "de",
+            "nde"
+          ],
+          "example": "nde"
+        },
+        "tags": {
+          "description": "Comma separated list of free form tags on this node",
+          "type": "string",
+          "example": "tag1,tag2=value"
+        },
+        "unit": {
+          "description": "Unit of the value recorded, in case of numeric inspection. Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "bar"
+        },
+        "valueType": {
+          "description": "Type of value to record. Only valid for inspection point type nodes",
+          "type": "string",
+          "enum": [
+            "numeric",
+            "single_choice",
+            "multi_choice",
+            "unknown"
+          ],
+          "example": "numeric"
+        },
+        "visualizationMaxValue": {
+          "description": "Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "13"
+        },
+        "visualizationMinValue": {
+          "description": "Only valid for inspection point type nodes",
+          "type": "string",
+          "example": "3"
+        },
+        "visualizationType": {
+          "description": "Type of visualization in Enlight Centre. Only valid for inspection point type nodes",
+          "type": "string",
+          "enum": [
+            "visualization_none",
+            "visualization_circular_gauge",
+            "visualization_level_gauge"
+          ],
+          "example": "visualization_circular_gauge"
+        }
+      }
+    },
+    "webmodels.Nodes": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Node"
+          }
+        }
+      }
+    },
+    "webmodels.Origins": {
+      "type": "object",
+      "properties": {
+        "origins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Origin"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "AccessToken": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "tags": [
+    {
+      "name": "Events"
+    },
+    {
+      "name": "Hierarchy"
+    },
+    {
+      "name": "Taxonomy"
+    },
+    {
+      "name": "Origin"
+    }
+  ]
+}
