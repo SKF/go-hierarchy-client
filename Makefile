@@ -16,8 +16,8 @@ rest/swagger.json:
 
 rest/models/: rest/swagger.json
 	$(RM) -rf "$@" && $(MKDIR) -p "$@"
-	$(DOCKER) run --rm --interactive --tty \
+	$(DOCKER) run --rm \
 		--volume "$(shell pwd):/src" \
 		--user "$(shell id -u):$(shell id -g)" \
 		quay.io/goswagger/swagger:v0.25.0 \
-			generate model --spec="/src/$<" --target="/src/$@/.."
+			generate model --spec="/src/$<" --target="/src/$@.."

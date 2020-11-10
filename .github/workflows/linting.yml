@@ -15,10 +15,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Generate rest models
-        run: |
-          pwd
-          ls -l
-          make rest/models/
+        run: make rest/models/
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v2
