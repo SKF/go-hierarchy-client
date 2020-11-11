@@ -13,12 +13,12 @@ import (
 )
 
 type TreeFilter struct {
-	depth         int
-	limit         int
-	offset        int
-	metadataKey   string
-	metadataValue string
-	nodeTypes     []string
+	Depth         int
+	Limit         int
+	Offset        int
+	MetadataKey   string
+	MetadataValue string
+	NodeTypes     []string
 }
 
 type HierarchyClient interface {
@@ -152,12 +152,12 @@ func (c *client) GetCompany(ctx context.Context, id uuid.UUID) (models.Node, err
 func (c *client) GetSubtree(ctx context.Context, id uuid.UUID, filter TreeFilter) ([]models.Node, error) {
 	request := rest.Get("nodes/{node}/subtree{?depth,limit,offset,metadata_key,metadata_value,type*}").
 		Assign("node", id).
-		Assign("depth", filter.depth).
-		Assign("limit", filter.limit).
-		Assign("offset", filter.offset).
-		Assign("metadata_key", filter.metadataKey).
-		Assign("metadata_value", filter.metadataValue).
-		Assign("type", filter.nodeTypes).
+		Assign("depth", filter.Depth).
+		Assign("limit", filter.Limit).
+		Assign("offset", filter.Offset).
+		Assign("metadata_key", filter.MetadataKey).
+		Assign("metadata_value", filter.MetadataValue).
+		Assign("type", filter.NodeTypes).
 		SetHeader("Accept", "application/json")
 
 	var response models.WebmodelsNodes
