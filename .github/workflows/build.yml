@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Generate
-        uses: make rest/models/
+        run: make rest/models/
 
       - name: Build
         run: go build -v ./...
