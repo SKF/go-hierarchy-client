@@ -15,7 +15,9 @@ type HierarchyClientMock struct {
 }
 
 func NewHierarchyClient() *HierarchyClientMock {
-	client := &HierarchyClientMock{}
+	client := &HierarchyClientMock{
+		Mock: &mock.Mock{},
+	}
 
 	// Ensure the returned mock implements the HierarchyClient interface
 	var _ rest.HierarchyClient = client
