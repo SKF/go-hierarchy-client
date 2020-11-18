@@ -198,7 +198,16 @@ func (c *client) GetOrigins(ctx context.Context, provider string) ([]models.Orig
 		return nil, err
 	}
 
-	return response.Origins, nil
+	origins := make([]models.Origin, 0, len(response.Origins))
+
+	// Dereference all possible null values from response
+	for _, origin := range response.Origins {
+		if origin != nil {
+			origins = append(origins, *origin)
+		}
+	}
+
+	return origins, nil
 }
 
 func (c *client) GetOriginsByType(ctx context.Context, provider, originType string) ([]models.Origin, error) {
@@ -212,7 +221,16 @@ func (c *client) GetOriginsByType(ctx context.Context, provider, originType stri
 		return nil, err
 	}
 
-	return response.Origins, nil
+	origins := make([]models.Origin, 0, len(response.Origins))
+
+	// Dereference all possible null values from response
+	for _, origin := range response.Origins {
+		if origin != nil {
+			origins = append(origins, *origin)
+		}
+	}
+
+	return origins, nil
 }
 
 func (c *client) GetProviderNodeIDs(ctx context.Context, provider string) ([]uuid.UUID, error) {
