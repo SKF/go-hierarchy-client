@@ -32,6 +32,12 @@ type HierarchyClient interface {
 	GetCompany(ctx context.Context, id uuid.UUID) (models.Node, error)
 	GetSubtree(ctx context.Context, id uuid.UUID, filter TreeFilter) ([]models.Node, error)
 	GetSubtreeCount(ctx context.Context, id uuid.UUID, nodeTypes ...string) (int64, error)
+
+	GetOrigins(ctx context.Context, provider string) ([]models.Origin, error)
+	GetOriginsByType(ctx context.Context, provider, originType string) ([]models.Origin, error)
+	GetProviderNodeIDs(ctx context.Context, provider string) ([]uuid.UUID, error)
+	GetProviderNodeIDsByType(ctx context.Context, provider, originType string) ([]uuid.UUID, error)
+	GetOriginNodeID(ctx context.Context, origin models.Origin) (uuid.UUID, error)
 }
 
 type client struct {
@@ -180,4 +186,85 @@ func (c *client) GetSubtreeCount(ctx context.Context, id uuid.UUID, nodeTypes ..
 	}
 
 	return response.NodeCount, nil
+}
+
+func (c *client) GetOrigins(ctx context.Context, provider string) ([]models.Origin, error) {
+	request := rest.Get("origin/{provider}").
+		Assign("provider", provider).
+		SetHeader("Accept", "application/json")
+
+	var response models.WebmodelsOrigins
+	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
+		return nil, err
+	}
+
+	return response.Origins, nil
+}
+
+func (c *client) GetOriginsByType(ctx context.Context, provider, originType string) ([]models.Origin, error) {
+	request := rest.Get("origin/{provider}/{type}").
+		Assign("provider", provider).
+		Assign("type", originType).
+		SetHeader("Accept", "application/json")
+
+	var response models.WebmodelsOrigins
+	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
+		return nil, err
+	}
+
+	return response.Origins, nil
+}
+
+func (c *client) GetProviderNodeIDs(ctx context.Context, provider string) ([]uuid.UUID, error) {
+	request := rest.Get("origin/{provider}/nodes").
+		Assign("provider", provider).
+		SetHeader("Accept", "application/json")
+
+	var response models.WebmodelsNodeIDs
+	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
+		return nil, err
+	}
+
+	// Hierarchy swagger does not tell the model generator that it is an array of UUIDs
+	nodeIDs := make([]uuid.UUID, len(response.NodeIds))
+	for _, s := range response.NodeIds {
+		nodeIDs = append(nodeIDs, uuid.UUID(s))
+	}
+
+	return nodeIDs, nil
+}
+
+func (c *client) GetProviderNodeIDsByType(ctx context.Context, provider, originType string) ([]uuid.UUID, error) {
+	request := rest.Get("origin/{provider}/{type}/nodes").
+		Assign("provider", provider).
+		Assign("type", originType).
+		SetHeader("Accept", "application/json")
+
+	var response models.WebmodelsNodeIDs
+	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
+		return nil, err
+	}
+
+	// Hierarchy swagger does not tell the model generator that it is an array of UUIDs
+	nodeIDs := make([]uuid.UUID, len(response.NodeIds))
+	for _, s := range response.NodeIds {
+		nodeIDs = append(nodeIDs, uuid.UUID(s))
+	}
+
+	return nodeIDs, nil
+}
+
+func (c *client) GetOriginNodeID(ctx context.Context, origin models.Origin) (uuid.UUID, error) {
+	request := rest.Get("origin/{provider}/{type}/{id}/nodes").
+		Assign("provider", origin.Provider).
+		Assign("type", origin.Type).
+		Assign("id", origin.ID).
+		SetHeader("Accept", "application/json")
+
+	var response models.WebmodelsNodeID
+	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
+		return uuid.EmptyUUID, err
+	}
+
+	return response.NodeID, nil
 }

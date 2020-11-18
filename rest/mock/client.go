@@ -69,3 +69,28 @@ func (c *HierarchyClientMock) GetSubtreeCount(ctx context.Context, id uuid.UUID,
 	args := c.Called(ctx, id, nodeTypes)
 	return args.Get(0).(int64), args.Error(1)
 }
+
+func (c *HierarchyClientMock) GetOrigins(ctx context.Context, provider string) ([]models.Origin, error) {
+	args := c.Called(ctx, provider)
+	return args.Get(0).([]models.Origin), args.Error(1)
+}
+
+func (c *HierarchyClientMock) GetOriginsByType(ctx context.Context, provider, originType string) ([]models.Origin, error) {
+	args := c.Called(ctx, provider, originType)
+	return args.Get(0).([]models.Origin), args.Error(1)
+}
+
+func (c *HierarchyClientMock) GetProviderNodeIDs(ctx context.Context, provider string) ([]uuid.UUID, error) {
+	args := c.Called(ctx, provider)
+	return args.Get(0).([]uuid.UUID), args.Error(1)
+}
+
+func (c *HierarchyClientMock) GetProviderNodeIDsByType(ctx context.Context, provider, originType string) ([]uuid.UUID, error) {
+	args := c.Called(ctx, provider, originType)
+	return args.Get(0).([]uuid.UUID), args.Error(1)
+}
+
+func (c *HierarchyClientMock) GetOriginNodeID(ctx context.Context, origin models.Origin) (uuid.UUID, error) {
+	args := c.Called(ctx, origin)
+	return args.Get(0).(uuid.UUID), args.Error(1)
+}
