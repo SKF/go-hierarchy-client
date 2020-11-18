@@ -71,7 +71,7 @@ func (c *client) GetNode(ctx context.Context, id uuid.UUID) (models.Node, error)
 }
 
 func (c *client) CreateNode(ctx context.Context, node models.WebmodelsNodeInput) (uuid.UUID, error) {
-	request := rest.Put("nodes").
+	request := rest.Post("nodes").
 		WithJSONPayload(node).
 		SetHeader("Accept", "application/json")
 
@@ -84,7 +84,7 @@ func (c *client) CreateNode(ctx context.Context, node models.WebmodelsNodeInput)
 }
 
 func (c *client) UpdateNode(ctx context.Context, id uuid.UUID, node models.WebmodelsNodeInput) (models.Node, error) {
-	request := rest.Post("nodes/{node}").
+	request := rest.Put("nodes/{node}").
 		Assign("node", id).
 		WithJSONPayload(node).
 		SetHeader("Accept", "application/json")
