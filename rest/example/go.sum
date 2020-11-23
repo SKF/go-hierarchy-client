@@ -10,6 +10,8 @@ github.com/SKF/go-rest-utility v0.1.1 h1:sj/GoUnpavMpTvMFhJUTqAxpMCkgQDpvaJdAQWO
 github.com/SKF/go-rest-utility v0.1.1/go.mod h1:guklg3VsKd4vjV+U2qeBm24dNHFIts/1rd9tzltHi2g=
 github.com/SKF/go-rest-utility v0.1.2-0.20201123124405-90c3d272eed0 h1:zBBJfAOwmH43iMumvlyc0AxpxpujSly7W3obwNCeytE=
 github.com/SKF/go-rest-utility v0.1.2-0.20201123124405-90c3d272eed0/go.mod h1:h8g/3fX46d6omkbY8vgwUITXFLzh44S3GZX4jGfqMKQ=
+github.com/SKF/go-rest-utility v0.2.0 h1:Q9s3MQLkUxAiEq0cXDRnx58b3GYrUTN/LPt2lWM6yBk=
+github.com/SKF/go-rest-utility v0.2.0/go.mod h1:h8g/3fX46d6omkbY8vgwUITXFLzh44S3GZX4jGfqMKQ=
 github.com/SKF/go-utility v1.10.4 h1:/ANSV7G7cRgnjdrdMhsSY7Z5eoJibSihMBO0YQDS1ag=
 github.com/SKF/go-utility v1.10.4/go.mod h1:7gG7T9bnq8N3YViQfefxrpz/OAoME99oDkpGc/wkwhk=
 github.com/SKF/go-utility/v2 v2.2.2/go.mod h1:58mYgUJwysqzdcAploXrLQpyjJSsfTjD2C3kzk6pcuQ=
