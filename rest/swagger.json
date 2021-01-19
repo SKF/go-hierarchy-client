@@ -2116,8 +2116,7 @@
           "type": "string",
           "example": "TREEELEM"
         }
-      },
-      "x-nullable": false
+      }
     },
     "webmodels.AssetClasses": {
       "type": "object",
