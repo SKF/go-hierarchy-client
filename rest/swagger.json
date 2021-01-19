@@ -1,5 +1,7 @@
 {
-  "schemes": [],
+  "schemes": [
+    "https"
+  ],
   "swagger": "2.0",
   "info": {
     "description": "# Purpose\n\nThe purpose of the hierarchy API is to access and modify the Enlight asset hierarchy as well as closely related concepts such as origins, asset components and asset taxonomy.\n\n# Definitions\n\nThe hierarchy is made up of companies, plants, systems, functional locations, assets, measurement points, lubrication points and inspection points. Collectively, these are referred to as *Nodes*. Nodes imported from other systems have an *origin* that acts as a reference to the resourse in the source system. Nodes can also have *components* attached to them. *Components* represent physical parts of a machine, such as bearings or shafts.\n\n# Hierarchy\n\nThis part of the API is used to [create](#/Hierarchy/post_nodes), [update](#/Hierarchy/put_nodes__node_) and [delete](#/Hierarchy/delete_nodes__node_) hierarchy nodes. There are also endpoints for getting the company node under which a given node is located, getting the ancestor nodes of a given node, getting the descendants of a node, duplicating a given node and its descendants as well as deleting the origin of a node.\n\n## Nodes\n\nNodes are expected to contain a different set of properties depending on the type of the node. See the Models section for information about the different node types.\n\n## Origin\n\nAn origin on a node signifies that the node is synchronized from an external system, such as @Observer or @Analyst. Nodes with an origin cannot be modified, since any changes to the node would be overwritten by the sychronization job. To modify an imported node, the synchronization job first needs to be deleted. Deleting the synchronization job also deletes the origin on the nodes under that company.\n\n## Metadata\n\nThe field *metaData* can be used to store user defined keys, with optional values, on a node. Keys need to be strings, while values are strings or *null*. Certain keys may need special privileges to update. For backwards compatibility, the contents of this field is also reflected in the field *tags*. The *togs* field represents the keys and values as a comma-separated list, with keys and values separated by an equality sign.\n\n### Example\nGiven the following *metaData*\n```json\n{\n    \"tag\": null,\n    \"tag2\": \"value\"\n}\n```\nthe *tags* field would contain `\"tag,tag2=value\"`.\n\n### Creating and updating\n\nSince both the *tags* and *metaData* fields are generated from the same data, changes to either field is also reflected on the other. When creating or updating a node, the resulting metadata is the union of the data in *tags* and *metaData*. If a key has been specified in both the *tags* field and in *metaData*, the value in *tags* takes precedence.\n\n### Limitations\n\nTo prevent abuse of the metadata, the following limits are enforced on the data:\n\n| Property       | Limit |\n|----------------|-------|\n| Number of keys | 50    |\n| Key length     | 128   |\n| Value length   | 256   |\n\nKeys are restricted to alphanumeric characters as well as the characters `+-=._:/@`.\n\n# Asset Components\n\n- [Get](#/Asset%20Components/get_assets__node__components) components\n- [Create](#/Asset%20Components/post_assets__node__components) components\n- [Modify](#/Asset%20Components/put_assets__node__components__component_) components\n- [Delete](#/Asset%20Components/delete_assets__node__components__component_) components\n\n# Node Origins\n\n- Get nodes by full or partial origin definition\n- Get origins matching a partial origin definition\n\n# Hierarchy Event Stream\n\n- Get events that modify the hierarchy\n\n# Asset Taxonomy\n\n- Get known asset classes, types and sequences\n\n# Security\n## Access Token\n\nAll operations require an Access Token belonging to the user. For security reasons, the Identity Token is not allowed. The key should be provided in the header *Authorization*.\n",
@@ -1879,12 +1881,11 @@
           "format": "uuid"
         },
         "lubricant": {
-          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "example": "grease"
         },
         "lubricantUnit": {
-          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes                                                                           // Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "enum": [
             "gram",
@@ -2093,7 +2094,8 @@
     "NodeMetaData": {
       "type": "object",
       "additionalProperties": {
-        "type": "string"
+        "type": "string",
+        "x-nullable": true
       }
     },
     "Origin": {
@@ -2406,12 +2408,11 @@
           "format": "uuid"
         },
         "lubricant": {
-          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "example": "grease"
         },
         "lubricantUnit": {
-          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes                                                                           // Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "enum": [
             "gram",
