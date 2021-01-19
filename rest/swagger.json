@@ -1881,11 +1881,12 @@
           "format": "uuid"
         },
         "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "example": "grease"
         },
         "lubricantUnit": {
-          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes                                                                           // Type of lubricant used. Only valid for lubrication point type nodes",
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
           "type": "string",
           "enum": [
             "gram",
@@ -2407,11 +2408,12 @@
           "format": "uuid"
         },
         "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
           "type": "string",
           "example": "grease"
         },
         "lubricantUnit": {
-          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes                                                                           // Type of lubricant used. Only valid for lubrication point type nodes",
+          "description": "Unit that the volume is specified in. Only valid for lubrication point type nodes",
           "type": "string",
           "enum": [
             "gram",
