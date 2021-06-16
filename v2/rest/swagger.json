@@ -1,0 +1,2805 @@
+{
+  "schemes": [
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "API for accessing and modifying Enlight hierarchies. This is the second major version of the API.\n\nFor information about what has changed since version 1 of the API, and steps you need to take to\nmigrate, see the [migration guide](/v2/docs/service/migration).\n\nBusiness rules and behavior of the API is described in the [service doc](/v2/docs/service).\n\nIn case of errors, the API returns Problem Details as described in [RFC 7807](https://tools.ietf.org/html/rfc7807).\n\nInformation about the specific Problems defined in this API are described in [problems](/problems).",
+    "title": "Hierarchy API",
+    "contact": {},
+    "license": {
+      "name": "Proprietary"
+    },
+    "version": "2.0"
+  },
+  "host": "api.sandbox.hierarchy.enlight.skf.com",
+  "basePath": "/v2",
+  "paths": {
+    "/nodes": {
+      "post": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Create a new node. Depending on which type of node is to be created, different fields\nare mandatory. At the very least, specify the fields in the Node data type, subtype, label and parentId.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Creates a new node",
+        "parameters": [
+          {
+            "description": "Creates a node wth these properties, can't contain mismatch of type specific data (e.g. a inspection point can't popluate the 'volume' field)",
+            "name": "Node",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateNodeRequest"
+            }
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Node created successfully",
+            "schema": {
+              "$ref": "#/definitions/CreateNodeResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "409": {
+            "description": "Node with the specified origin already exists",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node found",
+            "schema": {
+              "$ref": "#/definitions/GetNodeResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/problems.NodeNotFoundProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Deletes the node with the given ID. The delete works recursively on the given nodes' children.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Deletes a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of node to remove",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Node deleted successfully"
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Updates the node with the given ID.",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Updates an existing node",
+        "parameters": [
+          {
+            "description": "Updates the nodes fields with these values, can't contain mismatch of type specific data (e.g. a inspection point can't popluate the 'volume' field)",
+            "name": "Node",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UpdateNodeRequest"
+            }
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of node to update",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node updated successfully",
+            "schema": {
+              "$ref": "#/definitions/UpdateNodeResponse"
+            }
+          },
+          "204": {
+            "description": "Node unchanged"
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "404": {
+            "description": "Specified node was not found",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/ancestors": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the ancestor nodes for the node with the given ID, ordered by ascending distance from the source node.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Get ancestors for given node.",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Maximum number of returned ancestors",
+            "name": "height",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got ancestors",
+            "schema": {
+              "$ref": "#/definitions/GetAncestorsResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/company": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the company node for the node with the given ID.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets the company node for any given node in the hierarchy",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company found",
+            "schema": {
+              "$ref": "#/definitions/GetCompanyResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/duplicate": {
+      "post": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Duplicates an existing node and puts it under the same parent node or a new parent if the destination_id parameter is given.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Duplicates a node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Suffix to apply to copied node's label",
+            "name": "label_suffix",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID of new parent to the duplicate",
+            "name": "destination_id",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Node successfully duplicated. _nodeId_ is ID of new node.",
+            "schema": {
+              "$ref": "#/definitions/DuplicateNodeResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/lock": {
+      "put": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "This makes any update operation invalid unless it is done by the same user that locked the node.\nThe lock affects the requested node and all its descendants.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Locks the Node for exclusive write access",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "disable recursive locking",
+            "name": "recursive",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Node locked successfully"
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Enables updates on the requested node and all its descendants.\nThis operation can only be done same user that unlocked it.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Unlocks a previously locked Node",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Node unlocked successfully"
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/subtree": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets a sub tree rooted at the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets a subtree",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "integer",
+            "description": "Maximum depth of returned subtree",
+            "name": "depth",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Maximum number of returned nodes",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Gets the result after the continuation token provided",
+            "name": "continuation_token",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Only return nodes having the given metadata key",
+            "name": "metadata_key",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Only return nodes where the value corresponding to metadata_key matches the given value",
+            "name": "metadata_value",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Timestamp in RFC3339 format, e.g. 2021-03-15T08:39:01Z, only return nodes modified after the specified time.",
+            "name": "modified_after",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got subtree",
+            "schema": {
+              "$ref": "#/definitions/GetSubtreeResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/nodes/{node}/subtree/count": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "Gets the node count of a sub tree rooted at the node with the given ID",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Hierarchy"
+        ],
+        "summary": "Gets node count in a subtree",
+        "parameters": [
+          {
+            "type": "string",
+            "x-go-type": {
+              "type": "UUID",
+              "import": {
+                "package": "github.com/SKF/go-utility/v2/uuid"
+              },
+              "hints": {
+                "kind": "object"
+              }
+            },
+            "format": "uuid",
+            "description": "Node ID",
+            "name": "node",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi",
+            "description": "Node type filter",
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully got subtree count",
+            "schema": {
+              "$ref": "#/definitions/GetSubtreeCountResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/origins/{provider}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "If no matching provider is found the list is empty.\nThe endpoint uses pagination, if the `next` link is set more results can be found\nby using that link for the next request.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origins"
+        ],
+        "summary": "List all origins sharing the same provider.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origins with this provider will be returned, no partial matches considered",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+            "default": 50,
+            "description": "Number of origins to be returned",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Gets result after the continuation token provided",
+            "name": "continuation_token",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetOriginsResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/origins/{provider}/nodes": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "If no node has an origin that matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origins"
+        ],
+        "summary": "List all node IDs which belong to a specified origin provider.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Nodes belonging to this provider will be returned, no partial matches considered",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+            "default": 50,
+            "description": "Number of origins to be returned",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Gets result after the continuation token provided",
+            "name": "continuation_token",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetNodesByPartialOriginResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/origins/{provider}/{provider_type}": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "If no matching provider or provider type is found the list is empty.\nThe endpoint uses pagination, if the `next` link is set more results can be found\nby using that link for the next request.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origins"
+        ],
+        "summary": "List all origins sharing the same provider and provider type.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origins with this provider will be returned, no partial matches considered",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origins with this provider type will be returned, no partial matches considered",
+            "name": "provider_type",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+            "default": 50,
+            "description": "Number of origins to be returned",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Gets result after the continuation token provided",
+            "name": "continuation_token",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetOriginsResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/origins/{provider}/{provider_type}/nodes": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "If no node has an origin that matches, an empty list will be returned.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origins"
+        ],
+        "summary": "List all node IDs which belong to a specified origin provider and provider type.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Nodes belonging to this provider will be returned, no partial matches considered",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Nodes belonging to this provider type will be returned, no partial matches considered",
+            "name": "provider_type",
+            "in": "path",
+            "required": true
+          },
+          {
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer",
+            "default": 50,
+            "description": "Number of origins to be returned",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Gets result after the continuation token provided",
+            "name": "continuation_token",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetNodesByPartialOriginResponse"
+            }
+          },
+          "400": {
+            "description": "The supplied parameters did not meet the requirements",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/origins/{provider}/{provider_type}/{id}/node": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Origins"
+        ],
+        "summary": "Get the node ID associated with a specific origin.",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Origin provider",
+            "name": "provider",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin provider type",
+            "name": "provider_type",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Origin ID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetNodeByOriginResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "403": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "404": {
+            "description": "No node with this origin was found",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/taxonomies/asset": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "These values are used to populate the `assetType` field on Asset nodes.\nIf no language is provided or the provided value is unsupported the endpoint\nwill default to English.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Taxonomies"
+        ],
+        "summary": "Retrieve the full asset type taxonomy (classes, types, and sequences)",
+        "parameters": [
+          {
+            "type": "string",
+            "default": "\"en\"",
+            "description": "BCP 47 based language tag which will be used to translate the term names",
+            "name": "Accept-Language",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "If the supplied ETag has not changed, 304 will be returned",
+            "name": "If-None-Match",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetTaxonomyResponse"
+            },
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "Entity tag for the corresponding content, can be supplied as If-None-Match on next request to achieve caching"
+              }
+            }
+          },
+          "304": {
+            "description": "Response has not changed since last request",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "Same entity tag as provided in the If-None-Match request header"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    },
+    "/taxonomies/industry": {
+      "get": {
+        "security": [
+          {
+            "AccessToken": []
+          }
+        ],
+        "description": "These values are used to populate the `industry` field on Site nodes.\nIf no language is provided or the provided value is unsupported the endpoint\nwill default to English.",
+        "produces": [
+          "application/json"
+        ],
+        "tags": [
+          "Taxonomies"
+        ],
+        "summary": "Retrieve the full industry taxonomy (sectors, segments, and industries)",
+        "parameters": [
+          {
+            "type": "string",
+            "default": "\"en\"",
+            "description": "BCP 47 based language tag which will be used to translate the term names",
+            "name": "Accept-Language",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "If the supplied ETag has not changed, 304 will be returned",
+            "name": "If-None-Match",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "Client ID that identifies the client",
+            "name": "X-Client-ID",
+            "in": "header",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "schema": {
+              "$ref": "#/definitions/GetTaxonomyResponse"
+            },
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "Entity tag for the corresponding content, can be supplied as If-None-Match on next request to achieve caching"
+              }
+            }
+          },
+          "304": {
+            "description": "Response has not changed since last request",
+            "headers": {
+              "ETag": {
+                "type": "string",
+                "description": "Same entity tag as provided in the If-None-Match request header"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthenticated",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred",
+            "schema": {
+              "$ref": "#/definitions/problems.BasicProblem"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Answer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Unique identifier of this specific answer",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "text": {
+          "description": "Textual representation of this inspection answer",
+          "type": "string",
+          "example": "The machine is clean"
+        }
+      }
+    },
+    "AssetType": {
+      "type": "object",
+      "required": [
+        "class"
+      ],
+      "properties": {
+        "class": {
+          "type": "string",
+          "example": "AX"
+        },
+        "code": {
+          "type": "string",
+          "example": "CO"
+        },
+        "sequence": {
+          "type": "string",
+          "example": "02"
+        }
+      }
+    },
+    "CreateNodeRequest": {
+      "type": "object",
+      "required": [
+        "criticality",
+        "inspectionType",
+        "label",
+        "lubricant",
+        "measurementType",
+        "orientation",
+        "parentId",
+        "subtype",
+        "type"
+      ],
+      "properties": {
+        "answers": {
+          "description": "Possible answers to a single choice or multi choice inspection.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Answer"
+          }
+        },
+        "assetType": {
+          "description": "Only valid for asset type nodes",
+          "$ref": "#/definitions/AssetType"
+        },
+        "country": {
+          "description": "Which country the node is in. Only valid for site type node",
+          "type": "string",
+          "example": "SWE"
+        },
+        "createdAt": {
+          "description": "Timestamp of node creation",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "criticality": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "high"
+        },
+        "dadType": {
+          "description": "Type of device used to take measurements on this point. Only valid for measurement point type nodes",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the node",
+          "type": "string",
+          "example": "First bearing, driven end"
+        },
+        "id": {
+          "description": "ID of node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "parentId": {
+          "description": "ID of parent node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            }
+          },
+          "example": "8f7551c5-3357-406d-ab82-bcb138d0b13f"
+        },
+        "industry": {
+          "description": "Industry segment of this node. Only valid for site type node",
+          "$ref": "#/definitions/Industry"
+        },
+        "inspectionType": {
+          "description": "Type of value to record.",
+          "type": "string",
+          "enum": [
+            "numeric",
+            "single_choice",
+            "multi_choice"
+          ],
+          "example": "numeric"
+        },
+        "label": {
+          "description": "Descriptive name of the node",
+          "type": "string",
+          "example": "01AA DE"
+        },
+        "locked": {
+          "description": "Locked indicates if this node is locked for editing by someone",
+          "$ref": "#/definitions/Lock"
+        },
+        "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
+          "type": "string",
+          "example": "grease"
+        },
+        "lubricantQuantity": {
+          "description": "Amount of lubricant to be used. Only valid for lubrication point type nodes",
+          "$ref": "#/definitions/NaturalQuantity"
+        },
+        "lubricateInstructions": {
+          "description": "Instruction for lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string"
+        },
+        "lubricationActivityAssetState": {
+          "description": "ActivityAssetState the asset should be in during the lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "must_be_on",
+            "must_be_off"
+          ],
+          "example": "must_be_on"
+        },
+        "manufacturer": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "Atlas Copco"
+        },
+        "measurementType": {
+          "description": "Type of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "displacement",
+            "acceleration",
+            "velocity",
+            "temperature",
+            "dc_gap",
+            "ampl_phase",
+            "box",
+            "speed",
+            "envelope_2",
+            "envelope_3",
+            "unknown"
+          ],
+          "example": "acceleration"
+        },
+        "metadata": {
+          "description": "Metadata with keys and optional values",
+          "$ref": "#/definitions/NodeMetaData"
+        },
+        "model": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "SF"
+        },
+        "orientation": {
+          "description": "Orientation of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "axial",
+            "radial",
+            "radial90",
+            "horizontal",
+            "vertical",
+            "unknown"
+          ],
+          "example": "vertical"
+        },
+        "origin": {
+          "description": "Origin of node, if imported from another system",
+          "$ref": "#/definitions/Origin"
+        },
+        "position": {
+          "description": "Relative position of node in the Enlight Centre UI",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "postalCode": {
+          "description": "Which postal code the site has. Only valid for site type node",
+          "type": "string",
+          "example": "415 05"
+        },
+        "serialNumber": {
+          "description": "Only valid for asset type nodes",
+          "type": "string"
+        },
+        "subtype": {
+          "description": "Subtype of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "ship",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point"
+          ],
+          "example": "asset"
+        },
+        "type": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point",
+            "unknown"
+          ],
+          "example": "asset"
+        },
+        "unit": {
+          "description": "Unit of value recorded. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "example": "bar"
+        },
+        "updatedAt": {
+          "description": "Timestamp of last node update",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "visualizationMaxValue": {
+          "description": "Maximum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 13
+        },
+        "visualizationMinValue": {
+          "description": "Minimum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 3
+        },
+        "visualizationType": {
+          "description": "Type of visualization in Enlight Centre. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "enum": [
+            "visualization_none",
+            "visualization_circular_gauge",
+            "visualization_level_gauge"
+          ],
+          "example": "visualization_circular_gauge"
+        }
+      }
+    },
+    "CreateNodeResponse": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
+    },
+    "DuplicateNodeResponse": {
+      "type": "object",
+      "properties": {
+        "newNodeId": {
+          "type": "string"
+        }
+      }
+    },
+    "GetAncestorsResponse": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Node"
+          }
+        }
+      }
+    },
+    "GetCompanyResponse": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
+    },
+    "GetNodeByOriginResponse": {
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid"
+        }
+      }
+    },
+    "GetNodeResponse": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
+    },
+    "GetNodesByPartialOriginResponse": {
+      "type": "object",
+      "properties": {
+        "links": {
+          "$ref": "#/definitions/OriginPaginationLinks"
+        },
+        "nodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "GetOriginsResponse": {
+      "type": "object",
+      "properties": {
+        "links": {
+          "$ref": "#/definitions/OriginPaginationLinks"
+        },
+        "origins": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Origin"
+          }
+        }
+      }
+    },
+    "GetSubtreeCountResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer"
+        }
+      }
+    },
+    "GetSubtreeResponse": {
+      "type": "object",
+      "properties": {
+        "links": {
+          "$ref": "#/definitions/SubtreePaginationLinks"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Node"
+          }
+        }
+      }
+    },
+    "GetTaxonomyResponse": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "$ref": "#/definitions/taxonomy.Terms"
+        }
+      }
+    },
+    "Industry": {
+      "type": "object",
+      "required": [
+        "sector"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "774"
+        },
+        "sector": {
+          "type": "string",
+          "example": "H"
+        },
+        "segment": {
+          "type": "string",
+          "example": "71U"
+        }
+      }
+    },
+    "Lock": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid"
+        }
+      }
+    },
+    "NaturalQuantity": {
+      "type": "object",
+      "required": [
+        "unit",
+        "value"
+      ],
+      "properties": {
+        "unit": {
+          "type": "string"
+        },
+        "value": {
+          "type": "number",
+          "maximum": 2147483647,
+          "minimum": 0
+        }
+      }
+    },
+    "Node": {
+      "type": "object",
+      "required": [
+        "criticality",
+        "inspectionType",
+        "label",
+        "lubricant",
+        "measurementType",
+        "orientation",
+        "parentId",
+        "subtype",
+        "type"
+      ],
+      "properties": {
+        "answers": {
+          "description": "Possible answers to a single choice or multi choice inspection.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Answer"
+          }
+        },
+        "assetType": {
+          "description": "Only valid for asset type nodes",
+          "$ref": "#/definitions/AssetType"
+        },
+        "country": {
+          "description": "Which country the node is in. Only valid for site type node",
+          "type": "string",
+          "example": "SWE"
+        },
+        "createdAt": {
+          "description": "Timestamp of node creation",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "criticality": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "high"
+        },
+        "dadType": {
+          "description": "Type of device used to take measurements on this point. Only valid for measurement point type nodes",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the node",
+          "type": "string",
+          "example": "First bearing, driven end"
+        },
+        "id": {
+          "description": "ID of node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "industry": {
+          "description": "Industry segment of this node. Only valid for site type node",
+          "$ref": "#/definitions/Industry"
+        },
+        "inspectionType": {
+          "description": "Type of value to record.",
+          "type": "string",
+          "enum": [
+            "numeric",
+            "single_choice",
+            "multi_choice"
+          ],
+          "example": "numeric"
+        },
+        "label": {
+          "description": "Descriptive name of the node",
+          "type": "string",
+          "example": "01AA DE"
+        },
+        "locked": {
+          "description": "Locked indicates if this node is locked for editing by someone",
+          "$ref": "#/definitions/Lock"
+        },
+        "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
+          "type": "string",
+          "example": "grease"
+        },
+        "lubricantQuantity": {
+          "description": "Amount of lubricant to be used. Only valid for lubrication point type nodes",
+          "$ref": "#/definitions/NaturalQuantity"
+        },
+        "lubricateInstructions": {
+          "description": "Instruction for lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string"
+        },
+        "lubricationActivityAssetState": {
+          "description": "ActivityAssetState the asset should be in during the lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "must_be_on",
+            "must_be_off"
+          ],
+          "example": "must_be_on"
+        },
+        "manufacturer": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "Atlas Copco"
+        },
+        "measurementType": {
+          "description": "Type of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "displacement",
+            "acceleration",
+            "velocity",
+            "temperature",
+            "dc_gap",
+            "ampl_phase",
+            "box",
+            "speed",
+            "envelope_2",
+            "envelope_3",
+            "unknown"
+          ],
+          "example": "acceleration"
+        },
+        "metadata": {
+          "description": "Metadata with keys and optional values",
+          "$ref": "#/definitions/NodeMetaData"
+        },
+        "model": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "SF"
+        },
+        "orientation": {
+          "description": "Orientation of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "axial",
+            "radial",
+            "radial90",
+            "horizontal",
+            "vertical",
+            "unknown"
+          ],
+          "example": "vertical"
+        },
+        "origin": {
+          "description": "Origin of node, if imported from another system",
+          "$ref": "#/definitions/Origin"
+        },
+        "parentId": {
+          "description": "ID of parent node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            }
+          },
+          "example": "8f7551c5-3357-406d-ab82-bcb138d0b13f"
+        },
+        "position": {
+          "description": "Relative position of node in the Enlight Centre UI",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "postalCode": {
+          "description": "Which postal code the site has. Only valid for site type node",
+          "type": "string",
+          "example": "415 05"
+        },
+        "serialNumber": {
+          "description": "Only valid for asset type nodes",
+          "type": "string"
+        },
+        "subtype": {
+          "description": "Subtype of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "ship",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point"
+          ],
+          "example": "asset"
+        },
+        "type": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point",
+            "unknown"
+          ],
+          "example": "asset"
+        },
+        "unit": {
+          "description": "Unit of value recorded. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "example": "bar"
+        },
+        "updatedAt": {
+          "description": "Timestamp of last node update",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "visualizationMaxValue": {
+          "description": "Maximum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 13
+        },
+        "visualizationMinValue": {
+          "description": "Minimum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 3
+        },
+        "visualizationType": {
+          "description": "Type of visualization in Enlight Centre. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "enum": [
+            "visualization_none",
+            "visualization_circular_gauge",
+            "visualization_level_gauge"
+          ],
+          "example": "visualization_circular_gauge"
+        }
+      },
+      "x-nullable": false
+    },
+    "NodeMetaData": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "x-nullable": true
+      }
+    },
+    "Origin": {
+      "type": "object",
+      "required": [
+        "id",
+        "provider",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "description": "Origin identity",
+          "type": "string",
+          "example": "d932a2f2-bd5e-4803-831a-0f32d50c5b8e"
+        },
+        "provider": {
+          "description": "Origin provider",
+          "type": "string",
+          "example": "8dc6763c-4eaf-4330-914d-56486ebfd68e"
+        },
+        "type": {
+          "description": "Origin type",
+          "type": "string",
+          "example": "TREEELEM"
+        }
+      }
+    },
+    "OriginPaginationLinks": {
+      "type": "object",
+      "properties": {
+        "next": {
+          "type": "string",
+          "format": "url"
+        },
+        "self": {
+          "type": "string",
+          "format": "url"
+        }
+      }
+    },
+    "SubtreePaginationLinks": {
+      "type": "object",
+      "properties": {
+        "next": {
+          "type": "string",
+          "format": "url"
+        },
+        "self": {
+          "type": "string",
+          "format": "url"
+        }
+      }
+    },
+    "UpdateNodeRequest": {
+      "type": "object",
+      "required": [
+        "criticality",
+        "inspectionType",
+        "label",
+        "lubricant",
+        "measurementType",
+        "orientation",
+        "parentId",
+        "subtype",
+        "type"
+      ],
+      "properties": {
+        "answers": {
+          "description": "Possible answers to a single choice or multi choice inspection.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Answer"
+          }
+        },
+        "assetType": {
+          "description": "Only valid for asset type nodes",
+          "$ref": "#/definitions/AssetType"
+        },
+        "country": {
+          "description": "Which country the node is in. Only valid for site type node",
+          "type": "string",
+          "example": "SWE"
+        },
+        "createdAt": {
+          "description": "Timestamp of node creation",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "criticality": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "high"
+        },
+        "dadType": {
+          "description": "Type of device used to take measurements on this point. Only valid for measurement point type nodes",
+          "type": "string"
+        },
+        "description": {
+          "description": "Description of the node",
+          "type": "string",
+          "example": "First bearing, driven end"
+        },
+        "id": {
+          "description": "ID of node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            },
+            "hints": {
+              "kind": "object"
+            }
+          },
+          "format": "uuid",
+          "example": "7bcd1711-21bd-4eb7-8349-b053d6d5226f"
+        },
+        "industry": {
+          "description": "Industry segment of this node. Only valid for site type node",
+          "$ref": "#/definitions/Industry"
+        },
+        "inspectionType": {
+          "description": "Type of value to record.",
+          "type": "string",
+          "enum": [
+            "numeric",
+            "single_choice",
+            "multi_choice"
+          ],
+          "example": "numeric"
+        },
+        "label": {
+          "description": "Descriptive name of the node",
+          "type": "string",
+          "example": "01AA DE"
+        },
+        "locked": {
+          "description": "Locked indicates if this node is locked for editing by someone",
+          "$ref": "#/definitions/Lock"
+        },
+        "lubricant": {
+          "description": "Type of lubricant used. Only valid for lubrication point type nodes",
+          "type": "string",
+          "example": "grease"
+        },
+        "lubricantQuantity": {
+          "description": "Amount of lubricant to be used. Only valid for lubrication point type nodes",
+          "$ref": "#/definitions/NaturalQuantity"
+        },
+        "lubricateInstructions": {
+          "description": "Instruction for lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string"
+        },
+        "lubricationActivityAssetState": {
+          "description": "ActivityAssetState the asset should be in during the lubrication activity. Only valid for lubrication point type nodes",
+          "type": "string",
+          "enum": [
+            "must_be_on",
+            "must_be_off"
+          ],
+          "example": "must_be_on"
+        },
+        "manufacturer": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "Atlas Copco"
+        },
+        "measurementType": {
+          "description": "Type of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "displacement",
+            "acceleration",
+            "velocity",
+            "temperature",
+            "dc_gap",
+            "ampl_phase",
+            "box",
+            "speed",
+            "envelope_2",
+            "envelope_3",
+            "unknown"
+          ],
+          "example": "acceleration"
+        },
+        "metadata": {
+          "description": "Metadata with keys and optional values",
+          "$ref": "#/definitions/NodeMetaData"
+        },
+        "model": {
+          "description": "Only valid for asset type nodes",
+          "type": "string",
+          "example": "SF"
+        },
+        "orientation": {
+          "description": "Orientation of measurement. Only valid for measurement point type nodes",
+          "type": "string",
+          "enum": [
+            "axial",
+            "radial",
+            "radial90",
+            "horizontal",
+            "vertical",
+            "unknown"
+          ],
+          "example": "vertical"
+        },
+        "origin": {
+          "description": "Origin of node, if imported from another system",
+          "$ref": "#/definitions/Origin"
+        },
+        "parentId": {
+          "description": "ID of parent node, as a UUID",
+          "type": "string",
+          "x-go-type": {
+            "type": "UUID",
+            "import": {
+              "package": "github.com/SKF/go-utility/v2/uuid"
+            }
+          },
+          "example": "8f7551c5-3357-406d-ab82-bcb138d0b13f"
+        },
+        "position": {
+          "description": "Relative position of node in the Enlight Centre UI",
+          "type": "integer",
+          "format": "int64",
+          "minimum": 0
+        },
+        "postalCode": {
+          "description": "Which postal code the site has. Only valid for site type node",
+          "type": "string",
+          "example": "415 05"
+        },
+        "serialNumber": {
+          "description": "Only valid for asset type nodes",
+          "type": "string"
+        },
+        "subtype": {
+          "description": "Subtype of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "ship",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point"
+          ],
+          "example": "asset"
+        },
+        "type": {
+          "description": "Type of node",
+          "type": "string",
+          "enum": [
+            "root",
+            "company",
+            "site",
+            "plant",
+            "system",
+            "functional_location",
+            "asset",
+            "measurement_location",
+            "measurement_point",
+            "inspection_point",
+            "lubrication_point",
+            "unknown"
+          ],
+          "example": "asset"
+        },
+        "unit": {
+          "description": "Unit of value recorded. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "example": "bar"
+        },
+        "updatedAt": {
+          "description": "Timestamp of last node update",
+          "type": "string",
+          "format": "date-time",
+          "example": "2021-03-17T13:20:07.924794Z"
+        },
+        "visualizationMaxValue": {
+          "description": "Maximum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 13
+        },
+        "visualizationMinValue": {
+          "description": "Minimum value used when visualizing the value of the point on a scale. Only valid for inspection points of type `numeric`.",
+          "type": "number",
+          "example": 3
+        },
+        "visualizationType": {
+          "description": "Type of visualization in Enlight Centre. Only valid for inspection points of type `numeric`.",
+          "type": "string",
+          "enum": [
+            "visualization_none",
+            "visualization_circular_gauge",
+            "visualization_level_gauge"
+          ],
+          "example": "visualization_circular_gauge"
+        }
+      }
+    },
+    "UpdateNodeResponse": {
+      "type": "object",
+      "properties": {
+        "node": {
+          "$ref": "#/definitions/Node"
+        }
+      }
+    },
+    "problems.BasicProblem": {
+      "type": "object",
+      "properties": {
+        "correlationId": {
+          "description": "CorrelationID, an unique identifier for tracing this issue in server logs.",
+          "type": "string"
+        },
+        "detail": {
+          "description": "Detail, a human-readable explanation specific to this occurrence of the problem.",
+          "type": "string"
+        },
+        "instance": {
+          "description": "Instance, a URI reference that identifies the specific resource on which the problem occurred.",
+          "type": "string",
+          "format": "url"
+        },
+        "status": {
+          "description": "Status, the HTTP status code associated with this problem occurrence.",
+          "type": "integer"
+        },
+        "title": {
+          "description": "Title, a short, human-readable summary of the problem type.\nThis should always be the same value for the same Type.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Type, a URI reference that identifies the problem type.\nWhen dereferenced this should provide human-readable documentation for the\nproblem type. When member is not present it is assumed to be \"about:blank\".",
+          "type": "string",
+          "format": "url"
+        }
+      }
+    },
+    "problems.NodeNotFoundProblem": {
+      "type": "object",
+      "properties": {
+        "correlationId": {
+          "description": "CorrelationID, an unique identifier for tracing this issue in server logs.",
+          "type": "string"
+        },
+        "detail": {
+          "description": "Detail, a human-readable explanation specific to this occurrence of the problem.",
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "instance": {
+          "description": "Instance, a URI reference that identifies the specific resource on which the problem occurred.",
+          "type": "string",
+          "format": "url"
+        },
+        "status": {
+          "description": "Status, the HTTP status code associated with this problem occurrence.",
+          "type": "integer"
+        },
+        "title": {
+          "description": "Title, a short, human-readable summary of the problem type.\nThis should always be the same value for the same Type.",
+          "type": "string"
+        },
+        "type": {
+          "description": "Type, a URI reference that identifies the problem type.\nWhen dereferenced this should provide human-readable documentation for the\nproblem type. When member is not present it is assumed to be \"about:blank\".",
+          "type": "string",
+          "format": "url"
+        }
+      }
+    },
+    "taxonomy.Term": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "rank": {
+          "type": "string"
+        },
+        "subterms": {
+          "$ref": "#/definitions/taxonomy.Terms"
+        },
+        "taxon": {
+          "type": "string"
+        }
+      }
+    },
+    "taxonomy.Terms": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/taxonomy.Term"
+      }
+    }
+  },
+  "securityDefinitions": {
+    "AccessToken": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "tags": [
+    {
+      "name": "Hierarchy"
+    },
+    {
+      "name": "Taxonomies"
+    },
+    {
+      "name": "Origins"
+    }
+  ]
+}
