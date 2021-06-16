@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/SKF/go-hierarchy-client/v2/rest/models"
-	rest "github.com/SKF/go-rest-utility/client"
 
+	rest "github.com/SKF/go-rest-utility/client"
 	"github.com/SKF/go-utility/v2/stages"
 	"github.com/SKF/go-utility/v2/uuid"
 )
@@ -45,7 +45,7 @@ type HierarchyClient interface {
 
 type client struct {
 	*rest.Client
-	clientId string
+	clientID string
 }
 
 func WithStage(stage string) rest.Option {
@@ -56,7 +56,7 @@ func WithStage(stage string) rest.Option {
 	return rest.WithBaseURL(fmt.Sprintf("https://api.%s.hierarchy.enlight.skf.com", stage))
 }
 
-func NewClient(clientId string, opts ...rest.Option) HierarchyClient {
+func NewClient(clientID string, opts ...rest.Option) HierarchyClient {
 	restClient := rest.NewClient(
 		append([]rest.Option{
 			// Defaults to production stage if no option is supplied
@@ -64,14 +64,14 @@ func NewClient(clientId string, opts ...rest.Option) HierarchyClient {
 		}, opts...)...,
 	)
 
-	return &client{Client: restClient, clientId: clientId}
+	return &client{Client: restClient, clientID: clientID}
 }
 
 func (c *client) GetNode(ctx context.Context, id uuid.UUID) (models.GetNodeResponse, error) {
 	request := rest.Get("v2/nodes/{node}").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetNodeResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -85,7 +85,7 @@ func (c *client) CreateNode(ctx context.Context, node models.CreateNodeRequest) 
 	request := rest.Post("v2/nodes").
 		WithJSONPayload(node).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.CreateNodeResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -100,7 +100,7 @@ func (c *client) UpdateNode(ctx context.Context, id uuid.UUID, node models.Updat
 		Assign("node", id).
 		WithJSONPayload(node).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.UpdateNodeResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -114,7 +114,7 @@ func (c *client) DeleteNode(ctx context.Context, id uuid.UUID) (err error) {
 	request := rest.Delete("v2/nodes/{node}").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	_, err = c.Do(ctx, request)
 
@@ -127,7 +127,7 @@ func (c *client) DuplicateNode(ctx context.Context, source uuid.UUID, destinatio
 		Assign("dstParentNodeId", destination).
 		Assign("label_suffix", suffix).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.DuplicateNodeResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -143,7 +143,7 @@ func (c *client) GetAncestors(ctx context.Context, id uuid.UUID, height int, nod
 		Assign("height", height).
 		Assign("type", nodeTypes).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetAncestorsResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -157,7 +157,7 @@ func (c *client) GetCompany(ctx context.Context, id uuid.UUID) (models.GetCompan
 	request := rest.Get("v2/nodes/{node}/company").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetCompanyResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -179,7 +179,7 @@ func (c *client) GetSubtree(ctx context.Context, id uuid.UUID, filter TreeFilter
 		Assign("continuation_token", continuationToken).
 		Assign("modified_after", filter.ModifiedAfter).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetSubtreeResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -194,7 +194,7 @@ func (c *client) GetSubtreeCount(ctx context.Context, id uuid.UUID, nodeTypes ..
 		Assign("node", id).
 		Assign("type", nodeTypes).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetSubtreeCountResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -210,7 +210,7 @@ func (c *client) GetOrigins(ctx context.Context, provider, continuationToken str
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetOriginsResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -227,7 +227,7 @@ func (c *client) GetOriginsByType(ctx context.Context, provider, originType, con
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetOriginsResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -243,7 +243,7 @@ func (c *client) GetProviderNodeIDs(ctx context.Context, provider, continuationT
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetNodesByPartialOriginResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -260,7 +260,7 @@ func (c *client) GetProviderNodeIDsByType(ctx context.Context, provider, originT
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetNodesByPartialOriginResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -276,7 +276,7 @@ func (c *client) GetOriginNodeID(ctx context.Context, origin models.Origin) (mod
 		Assign("type", origin.Type).
 		Assign("id", origin.ID).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	var response models.GetNodeByOriginResponse
 	if err := c.DoAndUnmarshal(ctx, request, &response); err != nil {
@@ -291,7 +291,7 @@ func (c *client) LockNode(ctx context.Context, id uuid.UUID, recursive bool) err
 		Assign("node", id).
 		Assign("recursive", recursive).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	_, err := c.Do(ctx, request)
 
@@ -302,7 +302,7 @@ func (c *client) UnlockNode(ctx context.Context, id uuid.UUID, recursive bool) e
 		Assign("node", id).
 		Assign("recursive", recursive).
 		SetHeader("Accept", "application/json").
-		SetHeader("X-Client-Id", c.clientId)
+		SetHeader("X-Client-Id", c.clientID)
 
 	_, err := c.Do(ctx, request)
 
