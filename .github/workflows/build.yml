@@ -32,7 +32,8 @@ jobs:
         env:
           MODELDIR: ${{matrix.ModelDir}}
         run: |
-          if ${{ env.MODELDIR != 'rest/models/' }} then
+          if ${{ env.MODELDIR != 'rest/models/' }}
+          then
             cd $MODELDIR && go build -v ./...
           else
             go build -v ./...
@@ -40,7 +41,8 @@ jobs:
 
       - name: Test
         run: |
-          if ${{ env.MODELDIR != 'rest/models/' }} then
+          if ${{ env.MODELDIR != 'rest/models/' }}
+          then
             cd $MODELDIR && go build -v ./...
           else
             go build -v ./...
