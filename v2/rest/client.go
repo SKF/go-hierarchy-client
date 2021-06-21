@@ -50,10 +50,10 @@ type client struct {
 
 func WithStage(stage string) rest.Option {
 	if stage == stages.StageProd {
-		return rest.WithBaseURL("https://api.hierarchy.enlight.skf.com")
+		return rest.WithBaseURL("https://api.hierarchy.enlight.skf.com/v2/")
 	}
 
-	return rest.WithBaseURL(fmt.Sprintf("https://api.%s.hierarchy.enlight.skf.com", stage))
+	return rest.WithBaseURL(fmt.Sprintf("https://api.%s.hierarchy.enlight.skf.com/v2/", stage))
 }
 
 func NewClient(clientID string, opts ...rest.Option) HierarchyClient {
@@ -68,7 +68,7 @@ func NewClient(clientID string, opts ...rest.Option) HierarchyClient {
 }
 
 func (c *client) GetNode(ctx context.Context, id uuid.UUID) (models.GetNodeResponse, error) {
-	request := rest.Get("v2/nodes/{node}").
+	request := rest.Get("nodes/{node}").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
 		SetHeader("X-Client-Id", c.clientID)
@@ -82,7 +82,7 @@ func (c *client) GetNode(ctx context.Context, id uuid.UUID) (models.GetNodeRespo
 }
 
 func (c *client) CreateNode(ctx context.Context, node models.CreateNodeRequest) (models.CreateNodeResponse, error) {
-	request := rest.Post("v2/nodes").
+	request := rest.Post("nodes").
 		WithJSONPayload(node).
 		SetHeader("Accept", "application/json").
 		SetHeader("X-Client-Id", c.clientID)
@@ -111,7 +111,7 @@ func (c *client) UpdateNode(ctx context.Context, id uuid.UUID, node models.Updat
 }
 
 func (c *client) DeleteNode(ctx context.Context, id uuid.UUID) (err error) {
-	request := rest.Delete("v2/nodes/{node}").
+	request := rest.Delete("nodes/{node}").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
 		SetHeader("X-Client-Id", c.clientID)
@@ -122,7 +122,7 @@ func (c *client) DeleteNode(ctx context.Context, id uuid.UUID) (err error) {
 }
 
 func (c *client) DuplicateNode(ctx context.Context, source uuid.UUID, destination uuid.UUID, suffix string) (models.DuplicateNodeResponse, error) {
-	request := rest.Post("v2/nodes/{node}/duplicate{?dstParentNodeId,label_suffix}").
+	request := rest.Post("nodes/{node}/duplicate{?dstParentNodeId,label_suffix}").
 		Assign("node", source).
 		Assign("dstParentNodeId", destination).
 		Assign("label_suffix", suffix).
@@ -138,7 +138,7 @@ func (c *client) DuplicateNode(ctx context.Context, source uuid.UUID, destinatio
 }
 
 func (c *client) GetAncestors(ctx context.Context, id uuid.UUID, height int, nodeTypes ...string) (models.GetAncestorsResponse, error) {
-	request := rest.Get("v2/nodes/{node}/ancestors{?height,type*}").
+	request := rest.Get("nodes/{node}/ancestors{?height,type*}").
 		Assign("node", id).
 		Assign("height", height).
 		Assign("type", nodeTypes).
@@ -154,7 +154,7 @@ func (c *client) GetAncestors(ctx context.Context, id uuid.UUID, height int, nod
 }
 
 func (c *client) GetCompany(ctx context.Context, id uuid.UUID) (models.GetCompanyResponse, error) {
-	request := rest.Get("v2/nodes/{node}/company").
+	request := rest.Get("nodes/{node}/company").
 		Assign("node", id).
 		SetHeader("Accept", "application/json").
 		SetHeader("X-Client-Id", c.clientID)
@@ -168,7 +168,7 @@ func (c *client) GetCompany(ctx context.Context, id uuid.UUID) (models.GetCompan
 }
 
 func (c *client) GetSubtree(ctx context.Context, id uuid.UUID, filter TreeFilter, continuationToken string) (models.GetSubtreeResponse, error) {
-	request := rest.Get("v2/nodes/{node}/subtree{?depth,limit,offset,metadata_key,metadata_value,continuation_token,type*}").
+	request := rest.Get("nodes/{node}/subtree{?depth,limit,offset,metadata_key,metadata_value,continuation_token,type*}").
 		Assign("node", id).
 		Assign("depth", filter.Depth).
 		Assign("limit", filter.Limit).
@@ -190,7 +190,7 @@ func (c *client) GetSubtree(ctx context.Context, id uuid.UUID, filter TreeFilter
 }
 
 func (c *client) GetSubtreeCount(ctx context.Context, id uuid.UUID, nodeTypes ...string) (models.GetSubtreeCountResponse, error) {
-	request := rest.Get("v2/nodes/{node}/subtree/count{?type*}").
+	request := rest.Get("nodes/{node}/subtree/count{?type*}").
 		Assign("node", id).
 		Assign("type", nodeTypes).
 		SetHeader("Accept", "application/json").
@@ -205,7 +205,7 @@ func (c *client) GetSubtreeCount(ctx context.Context, id uuid.UUID, nodeTypes ..
 }
 
 func (c *client) GetOrigins(ctx context.Context, provider, continuationToken string, limit int) (models.GetOriginsResponse, error) {
-	request := rest.Get("v2/origin/{provider,continuation_token,limit}").
+	request := rest.Get("origin/{provider,continuation_token,limit}").
 		Assign("provider", provider).
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
@@ -221,7 +221,7 @@ func (c *client) GetOrigins(ctx context.Context, provider, continuationToken str
 }
 
 func (c *client) GetOriginsByType(ctx context.Context, provider, originType, continuationToken string, limit int) (models.GetOriginsResponse, error) {
-	request := rest.Get("v2/origin/{provider}/{type}").
+	request := rest.Get("origin/{provider}/{type}").
 		Assign("provider", provider).
 		Assign("type", originType).
 		Assign("continuation_token", continuationToken).
@@ -238,7 +238,7 @@ func (c *client) GetOriginsByType(ctx context.Context, provider, originType, con
 }
 
 func (c *client) GetProviderNodeIDs(ctx context.Context, provider, continuationToken string, limit int) (models.GetNodesByPartialOriginResponse, error) {
-	request := rest.Get("v2/origin/{provider}/nodes").
+	request := rest.Get("origin/{provider}/nodes").
 		Assign("provider", provider).
 		Assign("continuation_token", continuationToken).
 		Assign("limit", limit).
@@ -254,7 +254,7 @@ func (c *client) GetProviderNodeIDs(ctx context.Context, provider, continuationT
 }
 
 func (c *client) GetProviderNodeIDsByType(ctx context.Context, provider, originType, continuationToken string, limit int) (models.GetNodesByPartialOriginResponse, error) {
-	request := rest.Get("v2/origin/{provider}/{type}/nodes").
+	request := rest.Get("origin/{provider}/{type}/nodes").
 		Assign("provider", provider).
 		Assign("type", originType).
 		Assign("continuation_token", continuationToken).
@@ -271,7 +271,7 @@ func (c *client) GetProviderNodeIDsByType(ctx context.Context, provider, originT
 }
 
 func (c *client) GetOriginNodeID(ctx context.Context, origin models.Origin) (models.GetNodeByOriginResponse, error) {
-	request := rest.Get("v2/origin/{provider}/{type}/{id}/nodes").
+	request := rest.Get("origin/{provider}/{type}/{id}/nodes").
 		Assign("provider", origin.Provider).
 		Assign("type", origin.Type).
 		Assign("id", origin.ID).
@@ -287,7 +287,7 @@ func (c *client) GetOriginNodeID(ctx context.Context, origin models.Origin) (mod
 }
 
 func (c *client) LockNode(ctx context.Context, id uuid.UUID, recursive bool) error {
-	request := rest.Put("v2/nodes/{node}/lock?recursive={recursive}").
+	request := rest.Put("nodes/{node}/lock?recursive={recursive}").
 		Assign("node", id).
 		Assign("recursive", recursive).
 		SetHeader("Accept", "application/json").
@@ -298,7 +298,7 @@ func (c *client) LockNode(ctx context.Context, id uuid.UUID, recursive bool) err
 	return err
 }
 func (c *client) UnlockNode(ctx context.Context, id uuid.UUID, recursive bool) error {
-	request := rest.Delete("v2/nodes/{node}/lock?recursive={recursive}").
+	request := rest.Delete("nodes/{node}/lock?recursive={recursive}").
 		Assign("node", id).
 		Assign("recursive", recursive).
 		SetHeader("Accept", "application/json").
