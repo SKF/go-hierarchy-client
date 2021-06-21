@@ -24,13 +24,13 @@ jobs:
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v2
-        if: ${{matrix.ModelDir == rest/models/}}
+        if: ${{matrix.ModelDir == 'rest/models/'}}
         with:
           version: v1.31
 
       - name: Run linter v2
         uses: golangci/golangci-lint-action@v2
-        if: ${{matrix.ModelDir == v2/rest/models/}}
+        if: ${{matrix.ModelDir == 'v2/rest/models/'}}
         with:
           version: v1.31
           working-directory: v2
