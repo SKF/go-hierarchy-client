@@ -29,6 +29,8 @@ jobs:
         run: make $MODELDIR
 
       - name: Build
+        env:
+          MODELDIR: ${{matrix.ModelDir}}
         if: ${{matrix.ModelDir != 'rest/models/'}}
         run: cd $MODELDIR && go build -v ./...
 
