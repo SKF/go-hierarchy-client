@@ -1,4 +1,4 @@
-name: Linting
+name: Linting v2
 
 on:
   push:
