@@ -36,5 +36,5 @@ jobs:
 
 
       - name: Test
-        if: ${{matrix.ModelDir != 'rest/models/'}}
+        if: ${{matrix.ModelDir == 'rest/models/'}}
         run: go test -v ./...
