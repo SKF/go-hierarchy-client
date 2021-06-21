@@ -9,12 +9,17 @@ jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
+    strategy:
+     matrix:
+      ModelDir: [rest/models/, rest/models/]
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Generate
-        run: make rest/models/
+        env:
+          MODELDIR: ${{matrix.ModelDir}}
+        run: make $MODELDIR
 
       - name: Commit
         run: |

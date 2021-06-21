@@ -10,6 +10,9 @@ jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+    strategy:
+     matrix:
+      ModelDir: [rest/models/, v2/rest/models/]
     steps:
       - name: Set up Go 1.x
         uses: actions/setup-go@v2
@@ -21,13 +24,22 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Generate
-        run: make rest/models/
-
-      - name: Generate
-        run: make v2/rest/models/
+        env:
+          MODELDIR: ${{matrix.ModelDir}}
+        run: make $MODELDIR
 
       - name: Build
-        run: go build -v ./...
+        env:
+          MODELDIR: ${{matrix.ModelDir}}
+        run: |
+          if ${{ env.MODELDIR != 'rest/models/' }} then
+            cd $MODELDIR
+          fi
+          go build -v ./...
 
       - name: Test
-        run: go test -v ./...
+        run: |
+          if ${{ env.MODELDIR != 'rest/models/' }} then
+            cd $MODELDIR
+          fi
+          go build -v ./...
