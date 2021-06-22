@@ -6,7 +6,7 @@ WGET   ?= wget
 MKDIR  ?= mkdir
 DOCKER ?= docker
 
-rest/models/ v2/rest/models/: %/..rest/swagger.json
+rest/models/ v2/rest/models/: %/../swagger.json
 	$(RM) -rf "$@" && $(MKDIR) -p "$@"
 	$(DOCKER) run --rm \
 		--volume "$(shell pwd):/src" \
