@@ -10,14 +10,29 @@ jobs:
   golangci:
     name: Linting
     runs-on: ubuntu-latest
+    strategy:
+     matrix:
+      ModelDir: [rest/models/, v2/rest/models/]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Generate rest models
-        run: make rest/models/
+        env:
+          MODELDIR: ${{matrix.ModelDir}}
+        run: make $MODELDIR
 
       - name: Run linter
         uses: golangci/golangci-lint-action@v2
+        if: ${{matrix.ModelDir == 'rest/models/'}}
         with:
           version: v1.31
+
+      - name: Run linter v2
+        uses: golangci/golangci-lint-action@v2
+        if: ${{matrix.ModelDir == 'v2/rest/models/'}}
+        with:
+          version: v1.31
+          working-directory: v2
+
+

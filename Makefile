@@ -6,7 +6,7 @@ WGET   ?= wget
 MKDIR  ?= mkdir
 DOCKER ?= docker
 
-rest/models/: rest/swagger.json
+rest/models/ v2/rest/models/: %/../swagger.json
 	$(RM) -rf "$@" && $(MKDIR) -p "$@"
 	$(DOCKER) run --rm \
 		--volume "$(shell pwd):/src" \
@@ -19,5 +19,11 @@ rest/swagger.json:
 	./scripts/patch-skf-uuids.sh "$@"
 	./scripts/patch-x-nullable.sh "$@"
 
+v2/rest/swagger.json:
+	$(WGET) "$(API_URL)/v2/docs/swagger/doc.json" -O "$@"
+	./scripts/patch-skf-uuids.sh "$@"
+	./scripts/patch-x-nullable.sh "$@"
+
 clean:
 	$(RM) -rf rest/models
+	$(RM) -rf v2/rest/models
