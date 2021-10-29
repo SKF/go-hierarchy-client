@@ -21,6 +21,12 @@ type TreeFilter struct {
 	NodeTypes     []string
 }
 
+type ComponentsFilter struct {
+	Limit          int
+	Offset         int
+	ComponentTypes []string
+}
+
 type HierarchyClient interface {
 	GetNode(ctx context.Context, id uuid.UUID) (models.Node, error)
 	CreateNode(ctx context.Context, node models.WebmodelsNodeInput) (uuid.UUID, error)
@@ -38,6 +44,12 @@ type HierarchyClient interface {
 	GetProviderNodeIDs(ctx context.Context, provider string) ([]uuid.UUID, error)
 	GetProviderNodeIDsByType(ctx context.Context, provider, originType string) ([]uuid.UUID, error)
 	GetOriginNodeID(ctx context.Context, origin models.Origin) (uuid.UUID, error)
+
+	GetAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) (models.WebmodelsComponent, error)
+	GetAssetComponents(ctx context.Context, assetID uuid.UUID, filter ComponentsFilter) (models.WebmodelsComponents, error)
+	CreateAssetComponent(ctx context.Context, assetID uuid.UUID, component models.WebmodelsComponentInput) (models.WebmodelsComponent, error)
+	UpdateAssetComponent(ctx context.Context, assetID, componentID uuid.UUID, component models.WebmodelsComponentInput) (models.WebmodelsComponent, error)
+	DeleteAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) error
 }
 
 type client struct {
@@ -285,4 +297,68 @@ func (c *client) GetOriginNodeID(ctx context.Context, origin models.Origin) (uui
 	}
 
 	return response.NodeID, nil
+}
+
+func (c *client) GetAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) (response models.WebmodelsComponent, err error) {
+	request := rest.Get("assets/{node}/components/{component}").
+		SetHeader("Accept", "application/json").
+		Assign("node", assetID).
+		Assign("component", componentID)
+
+	err = c.DoAndUnmarshal(ctx, request, &response)
+
+	return
+}
+
+func (c *client) GetAssetComponents(ctx context.Context, assetID uuid.UUID, filter ComponentsFilter) (response models.WebmodelsComponents, err error) {
+	if filter.Limit == 0 {
+		filter.Limit = 25
+	}
+
+	request := rest.Get("assets/{node}/components{?limit,offset,type*}").
+		SetHeader("Accept", "application/json").
+		Assign("node", assetID).
+		Assign("limit", filter.Limit).
+		Assign("offset", filter.Offset)
+
+	if len(filter.ComponentTypes) > 0 {
+		request = request.Assign("type", filter.ComponentTypes)
+	}
+
+	err = c.DoAndUnmarshal(ctx, request, &response)
+
+	return
+}
+
+func (c *client) CreateAssetComponent(ctx context.Context, assetID uuid.UUID, component models.WebmodelsComponentInput) (response models.WebmodelsComponent, err error) {
+	request := rest.Post("assets/{node}/components").
+		SetHeader("Accept", "application/json").
+		Assign("node", assetID).
+		WithJSONPayload(component)
+
+	err = c.DoAndUnmarshal(ctx, request, &response)
+
+	return
+}
+
+func (c *client) UpdateAssetComponent(ctx context.Context, assetID, componentID uuid.UUID, component models.WebmodelsComponentInput) (response models.WebmodelsComponent, err error) {
+	request := rest.Post("assets/{node}/components/{component}").
+		SetHeader("Accept", "application/json").
+		Assign("node", assetID).
+		Assign("component", componentID).
+		WithJSONPayload(component)
+
+	err = c.DoAndUnmarshal(ctx, request, &response)
+
+	return
+}
+
+func (c *client) DeleteAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) (err error) {
+	request := rest.Delete("assets/{node}/components/{component}").
+		Assign("node", assetID).
+		Assign("component", componentID)
+
+	_, err = c.Do(ctx, request)
+
+	return
 }

@@ -94,3 +94,28 @@ func (c *HierarchyClientMock) GetOriginNodeID(ctx context.Context, origin models
 	args := c.Called(ctx, origin)
 	return args.Get(0).(uuid.UUID), args.Error(1)
 }
+
+func (c *HierarchyClientMock) GetAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) (models.WebmodelsComponent, error) {
+	args := c.Called(ctx, assetID, componentID)
+	return args.Get(0).(models.WebmodelsComponent), args.Error(1)
+}
+
+func (c *HierarchyClientMock) GetAssetComponents(ctx context.Context, assetID uuid.UUID, filter rest.ComponentsFilter) (models.WebmodelsComponents, error) {
+	args := c.Called(ctx, assetID, filter)
+	return args.Get(0).(models.WebmodelsComponents), args.Error(1)
+}
+
+func (c *HierarchyClientMock) CreateAssetComponent(ctx context.Context, assetID uuid.UUID, component models.WebmodelsComponentInput) (models.WebmodelsComponent, error) {
+	args := c.Called(ctx, assetID, component)
+	return args.Get(0).(models.WebmodelsComponent), args.Error(1)
+}
+
+func (c *HierarchyClientMock) UpdateAssetComponent(ctx context.Context, assetID, componentID uuid.UUID, component models.WebmodelsComponentInput) (models.WebmodelsComponent, error) {
+	args := c.Called(ctx, assetID, componentID, component)
+	return args.Get(0).(models.WebmodelsComponent), args.Error(1)
+}
+
+func (c *HierarchyClientMock) DeleteAssetComponent(ctx context.Context, assetID, componentID uuid.UUID) error {
+	args := c.Called(ctx, assetID, componentID)
+	return args.Error(0)
+}
