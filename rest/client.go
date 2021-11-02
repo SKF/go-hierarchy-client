@@ -311,15 +311,14 @@ func (c *client) GetAssetComponent(ctx context.Context, assetID, componentID uui
 }
 
 func (c *client) GetAssetComponents(ctx context.Context, assetID uuid.UUID, filter ComponentsFilter) (response models.WebmodelsComponents, err error) {
-	if filter.Limit == 0 {
-		filter.Limit = 25
-	}
-
 	request := rest.Get("assets/{node}/components{?limit,offset,type*}").
 		SetHeader("Accept", "application/json").
 		Assign("node", assetID).
-		Assign("limit", filter.Limit).
 		Assign("offset", filter.Offset)
+
+	if filter.Limit > 0 {
+		request = request.Assign("limit", filter.Limit)
+	}
 
 	if len(filter.ComponentTypes) > 0 {
 		request = request.Assign("type", filter.ComponentTypes)
