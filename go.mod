@@ -1,6 +1,6 @@
 module github.com/SKF/go-hierarchy-client
 
-go 1.17
+go 1.18
 
 require (
 	github.com/SKF/go-rest-utility v0.2.0
